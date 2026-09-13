@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { AndroidStatusBar } from './components/android/AndroidStatusBar';
-import { AndroidNavigationBar } from './components/android/AndroidNavigationBar';
 import { BottomNavBar } from './components/android/BottomNavBar';
 import { Header } from './components/android/Header';
 
@@ -32,17 +30,44 @@ import { EventDetailModal } from './components/modals/EventDetailModal';
 import { SearchDialog } from './components/modals/SearchDialog';
 import { NotificationsSheet } from './components/modals/NotificationsSheet';
 import { SafeLinkModal } from './components/modals/SafeLinkModal';
+import { AndroidApkModal } from './components/common/AndroidApkModal';
+import { OfflineIndicator } from './components/common/OfflineIndicator';
 
 // Types & Data
 import { TabType, Language, NoticeItem, DepartmentItem, CollegeEventItem, ImportantLinkItem } from './types';
-import { CheckCircle, Download } from 'lucide-react';
+import { CheckCircle, Download, ShieldCheck, Database, Smartphone } from 'lucide-react';
+import { AdminPortal } from './components/admin/AdminPortal';
 
 export default function App() {
+  const [viewMode, setViewMode] = useState<'app' | 'admin'>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      const search = window.location.search;
+      if (hash === '#admin' || search.includes('admin=true') || search.includes('admin=1')) {
+        return 'admin';
+      }
+    }
+    return 'app';
+  });
+
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [academicsSubSection, setAcademicsSubSection] = useState<string | undefined>(undefined);
+  const [moreSubSection, setMoreSubSection] = useState<string | undefined>(undefined);
   const [language, setLanguage] = useState<Language>('en');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isApkModalOpen, setIsApkModalOpen] = useState(false);
+
+  // Sync hash changes for direct URL access to #admin
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#admin') {
+        setViewMode('admin');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Modals state
   const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(null);
@@ -87,6 +112,12 @@ export default function App() {
       if (mainScrollRef.current) {
         mainScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
       }
+    } else if (tab === 'more') {
+      setMoreSubSection(subSection);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (mainScrollRef.current) {
+        mainScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } else if (tab === 'home' && subSection) {
       // scroll to designated home section
       setTimeout(() => {
@@ -119,21 +150,58 @@ export default function App() {
     setSafeLink({ url, title });
   };
 
+  if (viewMode === 'admin') {
+    return (
+      <AdminPortal
+        onReturnToApp={() => {
+          setViewMode('app');
+          if (window.location.hash === '#admin') {
+            window.location.hash = '';
+          }
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-200 dark:bg-slate-950 flex items-center justify-center p-0 sm:p-4 md:p-6 select-none sm:select-auto">
+    <div className="min-h-screen bg-slate-200 dark:bg-slate-950 flex flex-col items-center justify-center p-0 sm:p-4 md:p-6 relative">
+      {/* Top Floating Switcher Bar for Admin Access (Desktop & Tablet) */}
+      <aside
+        aria-label="Administrative access"
+        className="hidden sm:flex items-center justify-between w-full max-w-md mb-2 px-3 py-1.5 rounded-full bg-slate-900/90 dark:bg-slate-900/90 text-white backdrop-blur border border-slate-700/80 shadow-lg text-[11px]"
+      >
+        <button
+          id="top-bar-btn-apk-install"
+          type="button"
+          onClick={() => setIsApkModalOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-semibold transition-all shadow-sm hover:scale-102 cursor-pointer"
+        >
+          <Smartphone className="w-3 h-3 text-white" />
+          <span>Install Android App / APK</span>
+        </button>
+        <button
+          onClick={() => {
+            setViewMode('admin');
+            window.location.hash = 'admin';
+          }}
+          className="flex items-center gap-1.5 px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-semibold transition-all shadow-sm hover:scale-102 cursor-pointer"
+        >
+          <Database className="w-3 h-3 text-sky-300" />
+          <span>Admin Suite & DB</span>
+        </button>
+      </aside>
+
       {/* Android Device Container Mockup Frame */}
       <div
         id="android-device-frame"
-        className="w-full max-w-md h-screen sm:h-[92vh] sm:max-h-[890px] bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800"
+        className="w-full max-w-md h-[100dvh] sm:h-[92vh] sm:max-h-[890px] bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800"
       >
-        {/* Android Status Bar */}
-        <AndroidStatusBar />
-
         {/* Material 3 App Header */}
         <Header
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenNotifications={() => setIsNotificationsOpen(true)}
           onOpenStudentLogin={() => handleNavigateTab('student')}
+          onOpenApkModal={() => setIsApkModalOpen(true)}
           onOpenSettings={() => {
             setActiveTab('more');
             setIsSettingsOpen(true);
@@ -146,7 +214,8 @@ export default function App() {
         <div
           ref={mainScrollRef}
           id="app-main-viewport"
-          className="flex-1 overflow-y-auto overscroll-contain relative scrollbar-none"
+          className="flex-1 overflow-y-auto overscroll-y-auto relative scrollbar-none touch-pan-y"
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {/* TAB 1: HOME */}
           {activeTab === 'home' && (
@@ -233,6 +302,7 @@ export default function App() {
               onSelectDepartment={setSelectedDepartment}
               language={language}
               initialSubSection={academicsSubSection}
+              onShowToast={showToast}
             />
           )}
 
@@ -242,12 +312,13 @@ export default function App() {
               onSelectNotice={setSelectedNotice}
               onDownloadNotice={handleDownloadNotice}
               language={language}
+              onShowToast={showToast}
             />
           )}
 
           {/* TAB 4: STUDENT */}
           {activeTab === 'student' && (
-            <StudentLoginPreview language={language} />
+            <StudentLoginPreview language={language} onShowToast={showToast} />
           )}
 
           {/* TAB 5: MORE */}
@@ -266,7 +337,14 @@ export default function App() {
                   onNavigateTab={handleNavigateTab}
                   onOpenSettings={() => setIsSettingsOpen(true)}
                   onOpenExternalLink={handleOpenExternalLink}
+                  onOpenAdminPanel={() => {
+                    setViewMode('admin');
+                    window.location.hash = 'admin';
+                  }}
+                  onOpenApkModal={() => setIsApkModalOpen(true)}
                   language={language}
+                  initialSubSection={moreSubSection}
+                  onShowToast={showToast}
                 />
               )}
             </>
@@ -291,9 +369,6 @@ export default function App() {
           language={language}
           isDarkMode={isDarkMode}
         />
-
-        {/* Android Gesture Navigation Bar */}
-        <AndroidNavigationBar />
 
         {/* MODAL 1: Notice & PDF Viewer */}
         <NoticeViewerModal
@@ -357,6 +432,16 @@ export default function App() {
           title={safeLink ? safeLink.title : undefined}
           onClose={() => setSafeLink(null)}
         />
+
+        {/* MODAL 7: Android APK & Installation Hub */}
+        <AndroidApkModal
+          isOpen={isApkModalOpen}
+          onClose={() => setIsApkModalOpen(false)}
+          onShowToast={showToast}
+        />
+
+        {/* Persistent Offline Status Banner */}
+        <OfflineIndicator />
       </div>
     </div>
   );

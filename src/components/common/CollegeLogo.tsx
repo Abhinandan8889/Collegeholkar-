@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 interface CollegeLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
@@ -5,70 +7,101 @@ interface CollegeLogoProps {
 }
 
 export function CollegeLogo({ size = 'md', className = '', showText = false }: CollegeLogoProps) {
+  const [imgErrorStep, setImgErrorStep] = useState(0);
+
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-11 h-11',
     lg: 'w-16 h-16',
-    xl: 'w-24 h-24',
+    xl: 'w-24 h-24 sm:w-28 sm:h-28',
   };
 
+  // Image source resolution fallback chain
+  const imageSources = [
+    '/assets/aistudio/logoupdated.png',
+    '/assets/aistudio/logoupdated.jpg',
+    'https://collegeholkar.org/hscimgs/logoupdated.jpg',
+  ];
+
+  const handleImageError = () => {
+    if (imgErrorStep < imageSources.length - 1) {
+      setImgErrorStep((prev) => prev + 1);
+    } else {
+      setImgErrorStep(imageSources.length); // Trigger SVG vector fallback
+    }
+  };
+
+  const currentSrc = imgErrorStep < imageSources.length ? imageSources[imgErrorStep] : null;
+
   return (
-    <div className={`flex items-center gap-2.5 ${className}`}>
+    <div className={`inline-flex items-center gap-2.5 ${className}`}>
       <div
-        className={`relative ${sizeClasses[size]} shrink-0 rounded-full bg-gradient-to-br from-amber-700 via-amber-800 to-amber-950 p-0.5 shadow-md ring-2 ring-amber-400/40 flex items-center justify-center`}
+        className={`relative ${sizeClasses[size]} shrink-0 rounded-full overflow-hidden bg-white p-0.5 shadow-xs ring-1.5 ring-amber-400/60 dark:ring-amber-500/50 flex items-center justify-center`}
       >
-        {/* Inner SVG Emblem representing Holkar Science College heritage & scientific temper */}
-        <svg
-          viewBox="0 0 100 100"
-          className="w-full h-full rounded-full bg-slate-900"
-          aria-hidden="true"
-        >
-          {/* Outer ring with golden stars */}
-          <circle cx="50" cy="50" r="46" fill="none" stroke="#D97706" strokeWidth="2.5" />
-          <circle cx="50" cy="50" r="40" fill="#0F172A" />
-          
-          {/* Sun rays / knowledge halo */}
-          <g stroke="#F59E0B" strokeWidth="1.2" opacity="0.6">
-            <line x1="50" y1="12" x2="50" y2="18" />
-            <line x1="50" y1="82" x2="50" y2="88" />
-            <line x1="12" y1="50" x2="18" y2="50" />
-            <line x1="82" y1="50" x2="88" y2="50" />
-            <line x1="23" y1="23" x2="28" y2="28" />
-            <line x1="77" y1="77" x2="72" y2="72" />
-            <line x1="23" y1="77" x2="28" y2="72" />
-            <line x1="77" y1="23" x2="72" y2="28" />
-          </g>
+        {currentSrc ? (
+          <img
+            src={currentSrc}
+            alt="Govt. Holkar (Model, Autonomous) Science College, Indore Logo"
+            className="w-full h-full object-contain rounded-full select-none"
+            referrerPolicy="no-referrer"
+            onError={handleImageError}
+            loading="lazy"
+          />
+        ) : (
+          /* High-fidelity Vector Fallback matching the authentic college seal */
+          <svg
+            viewBox="0 0 100 100"
+            className="w-full h-full rounded-full bg-white select-none"
+            aria-hidden="true"
+          >
+            {/* Outer Royal Purple Ring */}
+            <circle cx="50" cy="50" r="48" fill="#7A0064" stroke="#D97706" strokeWidth="1.5" />
+            <circle cx="50" cy="50" r="38" fill="#FFFFFF" />
+            
+            {/* Circular text path for College Name */}
+            <path id="logoTextPath" d="M 18,50 A 32,32 0 1,1 82,50" fill="none" />
+            <text fill="#FFFFFF" fontSize="6.5" fontWeight="bold" textAnchor="middle">
+              <textPath href="#logoTextPath" startOffset="50%">
+                शा. होल्कर विज्ञान महाविद्यालय
+              </textPath>
+            </text>
 
-          {/* Central Science & Knowledge Symbolism: Atom orbits & Microscope & Flame */}
-          <ellipse cx="50" cy="50" rx="22" ry="8" fill="none" stroke="#38BDF8" strokeWidth="1.5" transform="rotate(30 50 50)" />
-          <ellipse cx="50" cy="50" rx="22" ry="8" fill="none" stroke="#38BDF8" strokeWidth="1.5" transform="rotate(-30 50 50)" />
-          
-          {/* Center Torch of Learning / Science Flask */}
-          <path d="M46 58 L54 58 L52 44 L48 44 Z" fill="#FBBF24" />
-          <path d="M50 34 C47 38, 47 41, 50 43 C53 41, 53 38, 50 34 Z" fill="#EF4444" />
-          
-          {/* Microscope Base */}
-          <path d="M42 66 L58 66 L55 60 L45 60 Z" fill="#94A3B8" />
-          
-          {/* Open Book of Knowledge */}
-          <path d="M34 68 Q50 63 50 71 Q50 63 66 68 Q50 74 34 68 Z" fill="#F8FAFC" />
+            {/* Inner Shield */}
+            <path
+              d="M36 34 Q50 30 64 34 L64 56 Q50 68 36 56 Z"
+              fill="#1E7E34"
+              stroke="#E65100"
+              strokeWidth="1.5"
+            />
+            {/* Lamp of Learning & Knowledge Rays */}
+            <circle cx="50" cy="40" r="4" fill="#FBBF24" />
+            <line x1="50" y1="44" x2="50" y2="52" stroke="#B91C1C" strokeWidth="2" />
+            {/* Open Book */}
+            <path d="M42 54 Q50 51 50 56 Q50 51 58 54 Q50 58 42 54 Z" fill="#FFFFFF" />
 
-          {/* Established Year */}
-          <text x="50" y="80" textAnchor="middle" fontSize="6.5" fontWeight="bold" fill="#FDE68A" fontFamily="sans-serif">
-            ESTD 1891
-          </text>
-        </svg>
+            {/* Bottom Motto Banner */}
+            <rect x="28" y="66" width="44" height="9" rx="4.5" fill="#15803D" />
+            <text x="50" y="72.5" textAnchor="middle" fontSize="4.5" fontWeight="bold" fill="#FFFFFF">
+              तमसो मा ज्योतिर्गमय
+            </text>
+
+            {/* Established Year */}
+            <text x="50" y="83" textAnchor="middle" fontSize="5.5" fontWeight="bold" fill="#991B1B">
+              Estd. 1891
+            </text>
+          </svg>
+        )}
       </div>
 
       {showText && (
         <div className="flex flex-col text-left leading-tight">
-          <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
             Model, Autonomous
           </span>
-          <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
             Govt. Holkar Science College
           </span>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+          <span className="text-[10.5px] text-slate-500 dark:text-slate-400">
             Indore, Madhya Pradesh
           </span>
         </div>

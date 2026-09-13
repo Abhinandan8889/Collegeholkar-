@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Megaphone, ChevronRight } from 'lucide-react';
-import { LATEST_NOTICES } from '../../data/collegeData';
 import { NoticeItem, Language } from '../../types';
+import { useDatabase } from '../../context/DatabaseContext';
 
 interface AnnouncementTickerProps {
   onSelectNotice: (notice: NoticeItem) => void;
@@ -9,7 +9,10 @@ interface AnnouncementTickerProps {
 }
 
 export function AnnouncementTicker({ onSelectNotice, language }: AnnouncementTickerProps) {
-  const urgentNotices = LATEST_NOTICES.filter((n) => n.isImportant || n.isNew);
+  const { notices } = useDatabase();
+  const urgentNotices = notices.filter(
+    (n) => (n as any).isMarqueeTicker || n.isImportant || n.isNew
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -20,7 +23,7 @@ export function AnnouncementTicker({ onSelectNotice, language }: AnnouncementTic
     return () => clearInterval(interval);
   }, [urgentNotices.length]);
 
-  const activeNotice = urgentNotices[currentIndex] || urgentNotices[0];
+  const activeNotice = urgentNotices[currentIndex] || urgentNotices[0] || notices[0];
 
   if (!activeNotice) return null;
 

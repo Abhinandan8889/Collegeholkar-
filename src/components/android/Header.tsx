@@ -1,4 +1,4 @@
-import { Search, Bell, User } from 'lucide-react';
+import { Search, Bell, User, Smartphone } from 'lucide-react';
 import { CollegeLogo } from '../common/CollegeLogo';
 import { Language } from '../../types';
 import { getTranslation } from '../../locales/strings';
@@ -7,6 +7,7 @@ interface HeaderProps {
   onOpenSearch: () => void;
   onOpenNotifications: () => void;
   onOpenStudentLogin: () => void;
+  onOpenApkModal?: () => void;
   onOpenSettings?: () => void;
   onToggleLanguage?: () => void;
   unreadNotificationsCount?: number;
@@ -18,6 +19,7 @@ export function Header({
   onOpenSearch,
   onOpenNotifications,
   onOpenStudentLogin,
+  onOpenApkModal,
   onOpenSettings,
   onToggleLanguage,
   unreadNotificationsCount = 2,
@@ -62,6 +64,21 @@ export function Header({
 
         {/* Header Actions */}
         <div className="flex items-center gap-1 shrink-0">
+          {/* APK / App Install Hub Button */}
+          {onOpenApkModal && (
+            <button
+              id="header-btn-apk-install"
+              type="button"
+              onClick={onOpenApkModal}
+              aria-label="Install Android App / APK"
+              title="Install Android App / APK"
+              className="px-2 py-1 rounded-full flex items-center gap-1 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95 transition-all shadow-xs cursor-pointer"
+            >
+              <Smartphone className="w-3 h-3" />
+              <span className="hidden xs:inline">App</span>
+            </button>
+          )}
+
           {/* Language Toggle Button */}
           {onToggleLanguage && (
             <button

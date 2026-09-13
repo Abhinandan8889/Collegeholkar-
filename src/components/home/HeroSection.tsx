@@ -14,22 +14,36 @@ export function HeroSection({
   onExploreAcademics,
   onViewNotices,
 }: HeroSectionProps) {
-  // Configurable campus banner image with fallback to a dignified academic facade
-  const [heroImage] = useState<string>(
-    'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80'
-  );
+  // Authentic campus aerial background image with fallback chain
+  const imageSources = [
+    '/assets/aistudio/front_ghsc_new.jpg',
+    '/front_ghsc_new.jpg',
+    'https://collegeholkar.org/hscimgs/front_ghsc_new.jpg',
+    'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80',
+  ];
+
+  const [imgIndex, setImgIndex] = useState<number>(0);
+
+  const handleImageError = () => {
+    if (imgIndex < imageSources.length - 1) {
+      setImgIndex((prev) => prev + 1);
+    }
+  };
 
   return (
     <section id="home-hero-section" className="relative overflow-hidden">
       {/* Background Banner with Gradient Overlay */}
-      <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900">
+      <div className="relative h-60 sm:h-72 w-full overflow-hidden bg-slate-950">
         <img
-          src={heroImage}
-          alt="Holkar Science College Campus Building"
-          className="w-full h-full object-cover object-center opacity-45 transform scale-105 transition-transform duration-700 hover:scale-100"
+          src={imageSources[imgIndex]}
+          alt="Government Holkar Science College Campus Indore"
+          className="w-full h-full object-cover object-center opacity-65 transform scale-100 transition-transform duration-700 hover:scale-105"
+          onError={handleImageError}
           loading="eager"
+          referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-900/40" />
+        {/* Subtle Vignette & Gradient for High-Contrast Text Legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/20" />
 
         {/* Top Floating Badge Bar */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">

@@ -12,21 +12,24 @@ import {
   Sparkles,
   AlertCircle,
 } from 'lucide-react';
-import { LATEST_NOTICES } from '../../data/collegeData';
 import { NoticeItem, Language } from '../../types';
 import { getTranslation } from '../../locales/strings';
+import { useDatabase } from '../../context/DatabaseContext';
 
 interface NoticesViewProps {
   onSelectNotice: (notice: NoticeItem) => void;
   onDownloadNotice: (notice: NoticeItem) => void;
   language: Language;
+  onShowToast?: (message: string) => void;
 }
 
 export function NoticesView({
   onSelectNotice,
   onDownloadNotice,
   language,
+  onShowToast,
 }: NoticesViewProps) {
+  const { notices } = useDatabase();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'latest' | 'important'>('latest');
@@ -34,7 +37,7 @@ export function NoticesView({
   const categories = ['All', 'Examination', 'Admission', 'Academic', 'Student', 'General'];
 
   const filteredNotices = useMemo(() => {
-    return LATEST_NOTICES.filter((notice) => {
+    return notices.filter((notice) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch =
         notice.title.toLowerCase().includes(q) ||
@@ -66,7 +69,9 @@ export function NoticesView({
         .catch(() => {});
     } else {
       navigator.clipboard?.writeText(`${notice.title}\n${notice.fileUrl || ''}`);
-      alert('Notice details copied to clipboard!');
+      if (onShowToast) {
+        onShowToast('Notice link & reference copied to clipboard!');
+      }
     }
   };
 

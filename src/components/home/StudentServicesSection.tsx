@@ -62,10 +62,22 @@ export function StudentServicesSection({ onNavigateTab, language }: StudentServi
       <div className="grid grid-cols-2 gap-2">
         {services.map((item) => {
           const Icon = item.icon;
+          const handleServiceClick = () => {
+            if (item.id === 'placements') {
+              onNavigateTab('more', 'placement');
+            } else if (item.id === 'anti_ragging') {
+              onNavigateTab('more', 'antiragging');
+            } else if (item.id === 'scholarships') {
+              onNavigateTab('notices');
+            } else {
+              onNavigateTab('student');
+            }
+          };
+
           return (
             <div
               key={item.id}
-              onClick={() => onNavigateTab('student', item.id)}
+              onClick={handleServiceClick}
               className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
             >
               <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 border ${item.color}`}>

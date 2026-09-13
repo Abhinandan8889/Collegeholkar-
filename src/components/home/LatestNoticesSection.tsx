@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { FileText, Download, Eye, ArrowRight, Sparkles, AlertCircle, Calendar } from 'lucide-react';
-import { LATEST_NOTICES } from '../../data/collegeData';
 import { NoticeItem, Language } from '../../types';
 import { getTranslation } from '../../locales/strings';
+import { useDatabase } from '../../context/DatabaseContext';
 
 interface LatestNoticesSectionProps {
   onSelectNotice: (notice: NoticeItem) => void;
@@ -17,10 +17,11 @@ export function LatestNoticesSection({
   onViewAllNotices,
   language,
 }: LatestNoticesSectionProps) {
+  const { notices } = useDatabase();
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const categories = ['All', 'Examination', 'Admission', 'Academic', 'Student'];
 
-  const filteredNotices = LATEST_NOTICES.filter((notice) => {
+  const filteredNotices = notices.filter((notice) => {
     if (activeCategory === 'All') return true;
     return notice.category === activeCategory;
   }).slice(0, 4);

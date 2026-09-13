@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   Landmark,
   ShieldCheck,
@@ -12,88 +13,198 @@ import {
   ChevronRight,
   GraduationCap,
   ExternalLink,
+  Briefcase,
+  ShieldAlert,
+  ArrowLeft,
+  Database,
+  Lock,
+  Smartphone,
+  Download,
 } from 'lucide-react';
 import { TabType, Language } from '../../types';
 import { getTranslation } from '../../locales/strings';
 import { CollegeLogo } from '../common/CollegeLogo';
 import { COLLEGE_INFO } from '../../data/collegeData';
 
+import { CentralLibraryView } from './CentralLibraryView';
+import { GovernanceView } from './GovernanceView';
+import { ResearchCellView } from './ResearchCellView';
+import { PlacementCellView } from './PlacementCellView';
+import { GrievanceAntiRaggingView } from './GrievanceAntiRaggingView';
+import { CampusTourView } from './CampusTourView';
+
 interface MoreMenuProps {
   onNavigateTab: (tab: TabType, subSection?: string) => void;
   onOpenSettings: () => void;
   onOpenExternalLink: (url: string, title: string) => void;
+  onOpenAdminPanel?: () => void;
+  onOpenApkModal?: () => void;
   language: Language;
+  initialSubSection?: string;
+  onShowToast?: (message: string) => void;
 }
 
 export function MoreMenu({
   onNavigateTab,
   onOpenSettings,
   onOpenExternalLink,
+  onOpenAdminPanel,
+  onOpenApkModal,
   language,
+  initialSubSection,
+  onShowToast,
 }: MoreMenuProps) {
+  const [activeSubView, setActiveSubView] = useState<string | null>(initialSubSection || null);
+
+  useEffect(() => {
+    if (initialSubSection) {
+      setActiveSubView(initialSubSection);
+    }
+  }, [initialSubSection]);
+
+  const handleBackToMenu = () => {
+    setActiveSubView(null);
+  };
+
+  // If a sub-view is active, render it with an Android back bar
+  if (activeSubView) {
+    let Component = null;
+    let title = 'Details';
+
+    switch (activeSubView) {
+      case 'library':
+      case 'lib':
+        Component = <CentralLibraryView language={language} onShowToast={onShowToast} />;
+        title = language === 'hi' ? 'केंद्रीय ग्रंथालय' : 'Central Library';
+        break;
+      case 'governance':
+      case 'administration':
+        Component = <GovernanceView language={language} />;
+        title = language === 'hi' ? 'स्वायत्त शासन' : 'Governance & Administration';
+        break;
+      case 'research':
+        Component = <ResearchCellView language={language} onShowToast={onShowToast} />;
+        title = language === 'hi' ? 'शोध प्रकोष्ठ' : 'Research & Development';
+        break;
+      case 'placement':
+      case 'placements':
+        Component = <PlacementCellView language={language} onShowToast={onShowToast} />;
+        title = language === 'hi' ? 'प्रशिक्षण एवं प्लेसमेंट' : 'Placement & Careers';
+        break;
+      case 'antiragging':
+      case 'anti_ragging':
+      case 'grievance':
+        Component = <GrievanceAntiRaggingView language={language} onShowToast={onShowToast} />;
+        title = language === 'hi' ? 'एंटी-रैगिंग एवं शिकायत' : 'Anti-Ragging & Grievance';
+        break;
+      case 'gallery':
+      case 'tour':
+        Component = <CampusTourView language={language} onShowToast={onShowToast} />;
+        title = language === 'hi' ? 'परिसर दर्शन' : 'Campus Landmarks';
+        break;
+      default:
+        Component = null;
+    }
+
+    if (Component) {
+      return (
+        <div className="min-h-screen">
+          {/* Sub-view Android Back Header */}
+          <div className="sticky top-14 z-30 px-3 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-2xs">
+            <button
+              type="button"
+              onClick={handleBackToMenu}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
+              <span>{language === 'hi' ? 'वापस मेनू' : 'Back to Menu'}</span>
+            </button>
+            <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100 truncate max-w-[200px]">
+              {title}
+            </span>
+          </div>
+
+          {Component}
+        </div>
+      );
+    }
+  }
+
   const menuItems = [
     {
-      id: 'about',
-      label: language === 'hi' ? 'महाविद्यालय परिचय' : 'About College',
-      subtitle: language === 'hi' ? 'इतिहास, दृष्टि, मिशन व प्राचार्य' : 'History, Vision, Mission & Principal',
-      icon: Landmark,
-      color: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50',
-      action: () => onNavigateTab('home', 'about'),
-    },
-    {
-      id: 'administration',
-      label: language === 'hi' ? 'महाविद्यालय प्रशासन' : 'Administration & Governance',
-      subtitle: language === 'hi' ? 'शासी निकाय, स्वायत्त परिषद, समितियां' : 'Governing Body, Academic Council',
-      icon: ShieldCheck,
-      color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50',
-      action: () => onNavigateTab('home', 'about'),
-    },
-    {
-      id: 'research',
-      label: language === 'hi' ? 'अनुसंधान एवं विकास' : 'Research & Development',
-      subtitle: language === 'hi' ? 'शोध केंद्र, शोध पत्र, पेटेंट्स व परियोजनाएं' : '8 Research Centres, Publications, DST-FIST',
-      icon: Microscope,
+      id: 'android_apk',
+      label: language === 'hi' ? 'एंड्रॉइड ऐप एवं एपीके डाउनलोड हब' : 'Android App & APK Distribution Hub',
+      subtitle: language === 'hi' ? '1-क्लिक वेबएपीके इंस्टॉल, सोर्स कोड एवं प्रोजेक्ट जिप' : '1-Tap WebAPK, Android Studio Project (.ZIP) & Offline Setup',
+      icon: Smartphone,
       color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50',
-      action: () => onNavigateTab('academics', 'programmes'),
+      action: () => {
+        if (onOpenApkModal) {
+          onOpenApkModal();
+        }
+      },
     },
     {
       id: 'library',
-      label: language === 'hi' ? 'केंद्रीय पुस्तकालय एवं ई-संसाधन' : 'Central Library & E-Resources',
-      subtitle: language === 'hi' ? '1,00,000+ पुस्तकें, एन-लिस्ट व शोधसिंधु' : '100,000+ Volumes, N-LIST Digital Portal',
+      label: language === 'hi' ? 'केंद्रीय ग्रंथालय एवं ई-रिसोर्स' : 'Central Library & OPAC',
+      subtitle: language === 'hi' ? '1,25,000+ पुस्तकें, एन-लिस्ट व शोधसिंधु' : '1,25,000+ Volumes, N-LIST, RFID Kiosk',
       icon: Library,
-      color: 'text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/50',
-      action: () => onNavigateTab('academics', 'syllabus'),
+      color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50',
+      action: () => setActiveSubView('library'),
     },
     {
-      id: 'admissions',
-      label: language === 'hi' ? 'प्रवेश प्रक्रिया' : 'Admissions (e-Pravesh)',
-      subtitle: language === 'hi' ? 'स्नातक एवं स्नातकोत्तर प्रवेश विवरण' : 'UG & PG Admissions Merit Guidelines',
-      icon: UserPlus,
-      color: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50',
-      action: () => onNavigateTab('academics', 'programmes'),
+      id: 'governance',
+      label: language === 'hi' ? 'स्वायत्त प्रशासन एवं शासी निकाय' : 'Autonomous Governance',
+      subtitle: language === 'hi' ? 'शासी निकाय, अकादमिक परिषद, आईक्यूएसी' : 'Governing Body, Academic Council, IQAC',
+      icon: ShieldCheck,
+      color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50',
+      action: () => setActiveSubView('governance'),
     },
     {
-      id: 'events',
-      label: language === 'hi' ? 'कार्यक्रम एवं उत्सव' : 'Campus Events & Sports',
-      subtitle: language === 'hi' ? 'राष्ट्रीय विज्ञान दिवस, वार्षिक खेलकूद' : 'Science Day, Athletics & Conferences',
-      icon: Sparkles,
+      id: 'research',
+      label: language === 'hi' ? 'अनुसंधान एवं विकास (डीएसटी-फिस्ट)' : 'Research & CIF Labs',
+      subtitle: language === 'hi' ? '8 शोध केंद्र, सीआईएफ उपकरण, पेटेंट्स' : '8 Ph.D. Centres, DST-FIST CIF, XRD, SEM',
+      icon: Microscope,
       color: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/50',
-      action: () => onNavigateTab('home', 'events'),
+      action: () => setActiveSubView('research'),
+    },
+    {
+      id: 'placement',
+      label: language === 'hi' ? 'प्रशिक्षण एवं प्लेसमेंट सेल' : 'Training & Placement Cell',
+      subtitle: language === 'hi' ? 'शीर्ष भर्तीकर्ता, वेतन पैकेज व इंटर्नशिप' : 'Top Recruiters, Packages up to ₹12.5 LPA',
+      icon: Briefcase,
+      color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50',
+      action: () => setActiveSubView('placement'),
+    },
+    {
+      id: 'antiragging',
+      label: language === 'hi' ? 'एंटी-रैगिंग एवं छात्र शिकायत निवारण' : 'Anti-Ragging & Grievance',
+      subtitle: language === 'hi' ? '24x7 राष्ट्रीय हेल्पलाइन, ऑनलाइन शिकायत' : '24x7 Helpline, Online Ticket Tracking',
+      icon: ShieldAlert,
+      color: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50',
+      action: () => setActiveSubView('antiragging'),
     },
     {
       id: 'gallery',
-      label: language === 'hi' ? 'परिसर छायाचित्र दीर्घा' : 'Campus Gallery',
-      subtitle: language === 'hi' ? '34 एकड़ हरित परिसर, हेरिटेज भवन' : 'Botanical Garden, Heritage Campus, Labs',
+      label: language === 'hi' ? 'परिसर छायाचित्र व ऐतिहासिक स्थल' : 'Campus Landmarks & Heritage',
+      subtitle: language === 'hi' ? '1891 हेरिटेज भवन, यशवंत हॉल, बॉटनिकल गार्डन' : '1891 Heritage Architecture, Botanical Garden',
       icon: Images,
-      color: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/50',
-      action: () => onNavigateTab('home', 'hero'),
+      color: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50',
+      action: () => setActiveSubView('gallery'),
+    },
+    {
+      id: 'about',
+      label: language === 'hi' ? 'महाविद्यालय परिचय' : 'About College & History',
+      subtitle: language === 'hi' ? 'इतिहास, दृष्टि, मिशन व प्राचार्य संदेश' : 'History, Vision, Mission & Principal',
+      icon: Landmark,
+      color: 'text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-900',
+      action: () => onNavigateTab('home', 'about'),
     },
     {
       id: 'links',
-      label: language === 'hi' ? 'महत्वपूर्ण आधिकारिक लिंक्स' : 'Important Official Portals',
-      subtitle: language === 'hi' ? 'एमपीऑनलाइन, डीएवीवी, यूजीसी, एबीसी' : 'MPOnline, DAVV, DigiLocker, ABC ID',
+      label: language === 'hi' ? 'महत्वपूर्ण आधिकारिक पोर्टल्स' : 'Important Portals & Links',
+      subtitle: language === 'hi' ? 'एमपीऑनलाइन, डीएवीवी, यूजीसी, डिजिलॉकर' : 'MPOnline, DAVV, DigiLocker, ABC ID',
       icon: Globe,
-      color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50',
+      color: 'text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/50',
       action: () => onNavigateTab('home', 'links'),
     },
     {
@@ -101,16 +212,28 @@ export function MoreMenu({
       label: language === 'hi' ? 'संपर्क एवं स्थान' : 'Contact & Campus Map',
       subtitle: language === 'hi' ? 'भंवरकुआं, ए.बी. रोड, इंदौर 452001' : 'Bhawarkuan, A.B. Road, Indore',
       icon: PhoneCall,
-      color: 'text-stone-600 dark:text-stone-400 bg-slate-100 dark:bg-slate-800',
+      color: 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50',
       action: () => onNavigateTab('home', 'contact'),
     },
     {
       id: 'settings',
       label: language === 'hi' ? 'ऐप सेटिंग्स' : 'App Settings',
-      subtitle: language === 'hi' ? 'डार्क मोड, भाषा चयन, सूचनाएं' : 'Dark Mode, Language, Cache, About',
+      subtitle: language === 'hi' ? 'डार्क मोड, भाषा चयन, सूचनाएं' : 'Dark Mode, Language, Offline Cache, About',
       icon: Settings,
       color: 'text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80',
       action: onOpenSettings,
+    },
+    {
+      id: 'admin_panel',
+      label: language === 'hi' ? 'स्वायत्त एडमिन सुइट एवं डाटाबेस' : 'Autonomous Admin Suite & DB Studio',
+      subtitle: language === 'hi' ? 'परीक्षा फॉर्म, पदोन्नति, परिणाम व पूर्ण डेटाबेस' : 'Protected Authority: Exam Forms, Promotions, Results & Full DB',
+      icon: Database,
+      color: 'text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-950/80',
+      action: () => {
+        if (onOpenAdminPanel) {
+          onOpenAdminPanel();
+        }
+      },
     },
   ];
 
